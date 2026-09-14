@@ -14,6 +14,24 @@ On-chain mech collection and merge-synthesis game, deployed on **Robinhood Chain
 
 ---
 
+## Hackathon submission
+
+| | |
+|---|---|
+| Event | Arbitrum Open House — Singapore Online Buildathon (2026-09-14 → 2026-10-04) |
+| Track | Robinhood Chain (`Founder-in-Residence` — built on 4663 from day one, no port) |
+| What this repo is | **the contracts only.** The game client (frontend, points ledger, coupon-signing service) is a separate deployment and is intentionally not included here. |
+| Live game | https://neonmechlegion.xyz |
+| Demo video | _link_ — ≤3 min, shows the live flows and reads real on-chain numbers |
+| One-pager | [docs/ONE-PAGER.md](docs/ONE-PAGER.md) |
+
+> **Reproducing the claim, not just reading it.** Every number this repo asserts
+> about the deployment is independently checkable: `forge test` re-runs the suite,
+> the explorer shows the bytecode, Sourcify re-compiles the source, and `cast call`
+> reads the live counters. Nothing depends on trusting this document.
+
+---
+
 ## Deployment
 
 | | |
@@ -63,6 +81,14 @@ Gameplay (tower runs, daily check-in, synthesis, events) awards an **off-chain
 in-game score** that is used for matchmaking and seasonal leaderboards. The
 score is not a token, is not transferable, and is not sold — see
 [Known legacy](#known-legacy-the-disabled-buypoints-entry-point).
+
+> **Naming, so the app and this repo read the same.** In the game this reward is
+> surfaced as **"Season NML Rewards"** (`赛季 NML 奖励`). The token `NML` in that
+> label is a product name and the collection's ERC-721 symbol — it is **not a
+> ticker**, because there is no token. The reward is a number in an off-chain
+> ledger: no contract, no mint function, no transfer, no sale, no redemption
+> right. If you see "NML" next to a balance in the UI, read it as a score label,
+> not an asset.
 
 ---
 
@@ -151,8 +177,11 @@ deliberate quirk preserved for backend compatibility). Constraints:
   and be exactly tier `targetTier - 1`;
 - the fresh unit's tier is written to `synthTier[newId]`.
 
-Net supply never increases: `totalBurned` increases by 3 while one unit is
-minted, so the 10,000 cap holds.
+Net supply never increases: three units are destroyed while one is minted, so
+the 10,000 cap holds. `totalBurned` tracks **this path specifically** (+3 per
+fusion). The inherited public `burn(uint256)` is a separate single-unit path and
+is **not** reflected in `totalBurned` — see
+[Public interface](#public-interface).
 
 ### 3. Rarity model
 
@@ -193,12 +222,29 @@ synth:    {baseURI}/synth/{id}
 | `mintWithCoupon` | anyone with a valid coupon | user pays gas only |
 | `synthesizeWithCoupon` | anyone with a valid coupon | requires `synthActive` |
 | `tierOf` / `isGenesis` / `nextGenesisId` / `nextSynthId` | view | game-frontend helpers |
-| `MAX_GENESIS` / `totalBurned` / `totalSupply` | view | supply accounting |
-| `mintBatch` | `onlyOwner` | migration / airdrop helper |
+| `MAX_GENESIS` / `totalBurned` / `totalSupply` | view | supply accounting — **see note below** |
+| `burn(uint256)` | holder, or an approved operator | inherited from `ERC721SeaDrop`; single-unit, approval-checked, **not** counted by `totalBurned` |
+| `mintBatch` | `onlyOwner` | migration / bulk-mint helper |
 | `setMintActive` / `setSynthActive` | `onlyOwner` | pause switches |
 | `setSigner` | `onlyOwner` | rotate the coupon signer |
 | `setMintPrice` / `setPointsPrice` | `onlyOwner` | legacy compatibility setter, see below |
 | `withdraw` | `onlyOwner` | sweeps any residual balance |
+
+> **Supply accounting — two burn paths, one counter.** `MAX_GENESIS` caps
+> `_totalMinted()`. There are **two** ways a unit can be destroyed:
+>
+> 1. **Fusion** — `synthesizeWithCoupon` burns 3 units. This is the only path
+>    `totalBurned` counts (+3 per fusion).
+> 2. **Self-burn** — `burn(uint256)`, inherited unchanged from `ERC721SeaDrop`.
+>    Any holder may destroy their own unit. **`totalBurned` does not record these.**
+>
+> So `totalSupply() == MAX_GENESIS - totalBurned` is **not** an identity. Read
+> both values from chain rather than assuming one from the other.
+>
+> Live figures as of 2026-09-14: `_totalMinted()` = **5,659** · burns = **212**
+> (57 fusions = 171, plus 41 self-burns) · `totalSupply()` = **5,447**. Verify
+> with `cast call` or the explorer — do not trust a number hard-coded in a README,
+> including this one.
 
 ---
 

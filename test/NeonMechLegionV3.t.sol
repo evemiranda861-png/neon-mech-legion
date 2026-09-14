@@ -36,7 +36,11 @@ contract NeonMechLegionV3Test is Test {
     address internal alice = address(0xBEEF);
     address internal bob = address(0xCAFE);
 
-    string internal constant BASE = "https://neonmechlegion.xyz/api/token";
+    /// @dev Must mirror the baseURI the contract was actually deployed with,
+    ///      otherwise `test_G1` asserts a URL that does not resolve. The live
+    ///      deployment uses `https://neonmechlegion.xyz/meta` (see
+    ///      `script/constructor-args.txt`); the old `/api/token` prefix 404s.
+    string internal constant BASE = "https://neonmechlegion.xyz/meta";
 
     // ============ 事件（与合约定义一致，用于 expectEmit） ============
     event GenesisMinted(address indexed to, uint256 tokenId, uint8 tier);
