@@ -232,23 +232,38 @@ forge script script/DeployV3.s.sol:DeployV3 --rpc-url https://rpc.mainnet.chain.
 
 ---
 
-## Verifying on the block explorer
+## Verification status
 
-The deployed runtime bytecode matches `src/NeonMechLegionV3.sol` byte for byte,
-so standard verification should succeed:
+| Service | Result |
+|---|---|
+| [Sourcify](https://sourcify.dev/#/lookup/0xD9Ce80724456751d755a6B890714E3a2f2c002C5) | **`match`** — recompiled runtime bytecode is byte-identical to the deployed runtime (verified 2026-09-14, match ID `50845493`) |
+| Blockscout (Robinhood Chain) | Pending. The explorer's verifier API sits behind a bot challenge, so it cannot be driven from CI. The source in this repository is ready to paste into the explorer's verification form using `script/constructor-args.txt`. |
+
+Sourcify performs an independent recompilation and compares the output to the
+on-chain bytecode, so the `match` above is third-party confirmation that this
+source is what is running at the deployed address.
+
+### Reproducing verification locally
 
 ```bash
+forge build --force
+
 forge verify-contract \
   --chain 4663 \
-  --verifier blockscout \
-  --verifier-url https://robinhoodchain.blockscout.com/api \
+  --verifier sourcify \
   --constructor-args script/constructor-args.txt \
   0xD9Ce80724456751d755a6B890714E3a2f2c002C5 \
   src/NeonMechLegionV3.sol:NeonMechLegionV3
 ```
 
-If the explorer's verifier endpoint differs, the exact endpoint used at deploy
-time is recorded in the comments of `script/DeployV3.s.sol`.
+To verify on Blockscout instead, use the explorer's web form with:
+
+| Field | Value |
+|---|---|
+| Compiler | `v0.8.17+commit.8df45f5f` |
+| Optimization | `Yes`, runs `200` |
+| EVM version | `london` (Foundry default for solc 0.8.17) |
+| Constructor arguments | contents of `script/constructor-args.txt` |
 
 ---
 
@@ -321,6 +336,9 @@ them entirely rather than carry a permanently disabled entry point.
 │   └── seadrop/                  # git submodule (ProjectOpenSea/seadrop)
 ├── foundry.toml
 ├── foundry.lock
+├── .gitattributes                # forces LF: solc hashes sources into the metadata
+├── .gitignore
+├── README.md
 └── LICENSE
 ```
 
