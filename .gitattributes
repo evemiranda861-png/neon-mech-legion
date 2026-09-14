@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# Line endings: force LF everywhere.
+#
+# Why this file exists:
+#   The Solidity compiler embeds a hash of every source file into the contract's
+#   metadata (the CBOR block at the end of the runtime bytecode). Changing any
+#   byte of a source file — line endings included — changes that hash and makes
+#   the deployed contract impossible to verify against this source.
+#
+#   Windows Git defaults to core.autocrlf=true, which rewrites LF into CRLF on
+#   checkout. This file overrides that behaviour so the sources stay
+#   byte-identical on every platform and in every clone.
+# ---------------------------------------------------------------------------
+
+* text=auto eol=lf
+
+# Spelled out explicitly so a future rule change cannot silently narrow coverage.
+*.sol        text eol=lf
+*.json       text eol=lf
+*.toml       text eol=lf
+*.txt        text eol=lf
+*.md         text eol=lf
+LICENSE      text eol=lf
+.gitmodules  text eol=lf
+.gitignore   text eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary

@@ -1,0 +1,28 @@
+# ---------- Foundry build artifacts ----------
+cache/
+out/
+
+# ---------- Dependencies (managed as git submodules) ----------
+# lib/ is intentionally NOT ignored: lib/seadrop is pinned as a git submodule
+# and its commit hash is tracked in .gitmodules.
+node_modules/
+
+# ---------- Secrets ----------
+.env
+.env.*
+*.key
+*.pem
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# ---------- NOTE on broadcast/ ----------
+# broadcast/ is deliberately committed (not ignored).
+# It contains the actual deployment transactions, which let anyone verify
+# that this source was compiled and deployed to the address documented in
+# the README. It contains no private keys or signatures.
