@@ -9,6 +9,8 @@ On-chain mech collection and merge-synthesis game, deployed on **Robinhood Chain
 | **Collection** | https://opensea.io/collection/neonmechlegion |
 | **Contract** | [`0xD9Ce80724456751d755a6B890714E3a2f2c002C5`](https://robinhoodchain.blockscout.com/address/0xD9Ce80724456751d755a6B890714E3a2f2c002C5) |
 | **Explorer** | https://robinhoodchain.blockscout.com |
+| **Tests** | `forge test` — **43 passing, 0 failing** ([details](#tests)) |
+| **Verified** | Sourcify `match` — recompiled runtime is byte-identical to chain |
 
 ---
 
@@ -225,10 +227,41 @@ Dry-run the deployment script against Robinhood Chain (no transaction sent):
 forge script script/DeployV3.s.sol:DeployV3 --rpc-url https://rpc.mainnet.chain.robinhood.com
 ```
 
-> **Note on tests.** This repository contains the contract source and the
-> deployment script. It does not yet ship a Foundry test suite for the
-> coupon and synthesis paths; those are covered by on-chain integration testing
-> against the live deployment. A test suite is on the roadmap.
+---
+
+## Tests
+
+A Foundry test suite ships with this repository: **43 tests, 43 passing, 0 failing**.
+
+```bash
+forge test
+# Ran 1 test suite: 43 tests passed, 0 failed, 0 skipped
+```
+
+Coverage:
+
+| Group | What it locks down |
+|---|---|
+| A — Init & SeaDrop | ERC721A id sequence starts at 1, genesis and synth share one counter, `synthActive` starts `false`, `maxSupply`, ERC-165/721 interfaces |
+| B — Rarity derivation | `tierOf` is deterministic and always within `1..5`; a 3,000-sample distribution matches the 55/25/13/6/1 spec |
+| C — Coupon mint | happy path + 8 revert paths: bad action, expired, nonce replay, wrong key, **signature bound to caller** (Alice's coupon cannot be redeemed by Bob), wrong chain id, parameter tampering, sold out |
+| D — Owner mint | `mintBatch` happy path, non-owner revert, supply cap |
+| E — 3-into-1 synthesis | inactive revert, happy path (sources burned, new id carries the stored tier, `totalBurned += 3`), tier mismatch, not-owner, target tier bounds, action mismatch, nonce replay, and a full 9→3→1 fusion chain |
+| F — `buyPoints` | happy path, insufficient value, **the disabled state currently live on chain** (see below), owner-only price change |
+| G — `tokenURI` | genesis path, synth path, nonexistent token revert |
+| H — Admin | `onlyOwner` on every setter, signer rotation takes effect immediately (old signatures stop working), `withdraw` |
+| I — Front-end views | `nextGenesisId` / `nextSynthId` / `isGenesis` |
+
+Two fuzz tests cover tier-range and mint-quantity invariants (256 runs each).
+
+> **`buyPoints` is disabled on chain.** `test_F3_BuyPoints_DisabledByMaxPrice` pins the
+> behaviour of the live deployment: the owner has set `pointsPrice` to `type(uint256).max`,
+> so `require(msg.value >= pointsPrice)` can never be satisfied and every call reverts.
+> The test asserts this across several amounts, including absurdly large ones.
+>
+> **The contract source is frozen.** This suite is additive only. `src/NeonMechLegionV3.sol`
+> is byte-identical to the deployed runtime code (see Verification below) — editing it would
+> break Sourcify verification. Behaviour changes go through a new deployment, never a source patch.
 
 ---
 
