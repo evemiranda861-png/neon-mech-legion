@@ -206,7 +206,7 @@ Requires [Foundry](https://book.getfoundry.sh/getting-started/installation).
 The SeaDrop dependency is a git submodule, so clone recursively:
 
 ```bash
-git clone --recursive https://github.com/<your-org>/<your-repo>.git
+git clone --recursive https://github.com/evemiranda861-png/neon-mech-legion.git
 cd <your-repo>
 
 forge build
