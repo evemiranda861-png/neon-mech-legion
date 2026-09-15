@@ -19,10 +19,10 @@ On-chain mech collection and merge-synthesis game, deployed on **Robinhood Chain
 | | |
 |---|---|
 | Event | Arbitrum Open House — Singapore Online Buildathon (2026-09-14 → 2026-10-04) |
-| Track | Robinhood Chain (`Founder-in-Residence` — built on 4663 from day one, no port) |
+| Track | Overall Prize — Robinhood Chain project (built on 4663 from day one, no port) |
 | What this repo is | **the contracts only.** The game client (frontend, points ledger, coupon-signing service) is a separate deployment and is intentionally not included here. |
 | Live game | https://neonmechlegion.xyz |
-| Demo video | _link_ — ≤3 min, shows the live flows and reads real on-chain numbers |
+| Demo video | **[neonmechlegion.xyz/media/nml-demo.mp4](https://www.neonmechlegion.xyz/media/nml-demo.mp4)** — 78s, walks the live flows and ends on the on-chain verification card |
 | One-pager | [docs/ONE-PAGER.md](docs/ONE-PAGER.md) |
 
 > **Reproducing the claim, not just reading it.** Every number this repo asserts

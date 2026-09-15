@@ -80,6 +80,31 @@ footnote:
 The score is now **earned only** — tower runs, daily check-in, fusion, events.
 A future deployment will omit the function entirely rather than carry dead code.
 
+## Already shipped with this submission
+
+**A 78-second demo video, served from the project's own domain — no third-party host:**
+<https://www.neonmechlegion.xyz/media/nml-demo.mp4>
+
+It walks the real flows on the deployed game — mint, 3-into-1 fusion, tower run,
+score duel, scrapyard — and ends on the on-chain verification card: contract
+address, chain ID, Sourcify `match`, and the `forge test` result.
+
+**Index latency, measured on the production server:**
+
+| | Before | Now |
+|---|---|---|
+| Cold card read | ~30 s | **under 0.2 s** |
+| Worst-case path | 18.02 s | 0.99 s |
+| Full index rebuild | 71.5 s | 14.9 s |
+
+Robinhood Chain produces a block every 100 ms. That breaks conventional event-log
+indexing — 30 days is 25.5 million blocks — and we found the public RPC returning
+silently empty `eth_getLogs` results under load, which can wipe an index without
+raising an error. The live index is therefore built on batched `eth_call` probes,
+which either return a real owner or revert, so they cannot fail silently. The
+verification step writes the observed owner back into the index, so a transfer is
+picked up by the next reader instead of triggering a full rescan.
+
 ## What we will build during the buildathon
 
 In priority order, and we will report progress either way:
@@ -90,8 +115,6 @@ In priority order, and we will report progress either way:
 2. **Convert holders into players.** Thousands of wallets hold a mech; a small
    fraction have played. The remaining supply is the only real ammunition we
    have, and it goes to people who actually play — not to another free giveaway.
-3. **A ≤3 minute demo video** that shows the live flows and reads the on-chain
-   numbers on camera.
 
 ## Why this fits Robinhood Chain
 
